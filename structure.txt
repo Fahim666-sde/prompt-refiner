@@ -1,0 +1,16 @@
+C:.
+│   .gitignore
+│   LICENSE
+│   prompt-refiner.skill
+│   README.md
+│   structure.txt
+│   
++---examples
+│       examples.md
+│       
++---prompt-refiner
+    │   SKILL.md
+    │   
+    +---references
+            models.md
+            techniques.md

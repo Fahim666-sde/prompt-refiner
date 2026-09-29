@@ -1,50 +1,100 @@
 ---
 name: prompt-refiner
-description: Takes the user's rough, short, or vague prompt, rewrites it into a well-structured, detailed, contextualized prompt, and then answers that improved prompt in the same response. Use whenever the user says "refine", "/refine", "improve my prompt and answer it", "make this prompt better then answer", "polish this then respond", or pastes a rough question and asks Claude to sharpen it first. Especially useful for coding, research, and studying questions. This is NOT for writing prompts for other AI tools; the refined prompt is used by Claude itself to give a better answer.
+description: Turns a rough, short, or vague prompt into a clear, detailed, well-structured prompt that works on any AI model (Claude, ChatGPT, Gemini, Llama, Mistral, DeepSeek, Qwen, Perplexity, coding agents, image or video generators), then either answers it or hands it back ready to paste. Supports four modes - Answer (refine then answer, the default), Portable (model-agnostic prompt only), Tuned (variants for named models), and Critique (score and improve a prompt the user already wrote). Use whenever the user says "refine", "/refine", "improve my prompt", "make this prompt better", "polish this prompt", "fix my prompt", "prompt for any AI", "works on ChatGPT and Claude", "universal prompt", "reusable prompt", or pastes a rough question and wants it sharpened first, even if they do not say the word "prompt". Especially useful for coding, research, studying, writing, and analysis questions.
 ---
 
 # Prompt Refiner
 
-Turn a rough prompt into a strong one, then answer the strong one.
+Take the user's rough prompt, work out what they really want, and rebuild it as a prompt that any capable AI model will handle well. Then deliver it in the form the user needs.
 
-## Workflow
+## Step 1: Pick the mode
 
-1. **Read the rough prompt** and work out the real goal behind it: what the user wants to end up with, not just what they typed.
-2. **Rewrite it** as a detailed, contextualized prompt (see the checklist below).
-3. **Show the refined prompt** briefly, in a quote block, under a short heading like "Refined prompt".
-4. **Answer the refined prompt** fully, right after it. This is the main deliverable, so do not stop after the rewrite.
+Read the request and choose one mode. If nothing says otherwise, use **Answer**.
 
-## What a good refined prompt contains
+| Mode | Trigger | Deliverable |
+|---|---|---|
+| **Answer** (default) | "refine", "/refine", or a rough question with no target model | Show the refined prompt briefly, then answer it in full |
+| **Portable** | "for any AI", "to paste into", "reusable", "universal", "just give me the prompt" | The refined prompt only, in a copy-paste code block |
+| **Tuned** | Names specific models or tools ("for ChatGPT and Gemini", "for Cursor", "for Midjourney") | One portable prompt plus a short tuned variant per named target |
+| **Critique** | The user pastes a prompt they already wrote and asks for feedback or a score | Short scorecard, top fixes, and an improved version |
 
-Include only what applies. Do not pad.
+Switch modes when the user asks, for example "just answer" (Answer without showing the prompt) or "now give me the paste-ready version" (Portable).
 
-- **Goal**: the specific outcome wanted, stated plainly.
-- **Context**: relevant background from the conversation, files, or stated preferences. Never invent facts about the user. If something is unknown, say so or make a labelled assumption.
-- **Role and audience**: who the answer is for (e.g. a beginner, an exam candidate, a working developer) and what level to pitch it at.
-- **Scope and constraints**: language, framework, version, length, things to avoid, time limits.
-- **Depth and format**: what the answer should look like (code with comments, step-by-step explanation, comparison table, summary plus details, practice questions).
-- **Quality bar**: what makes the answer good (correct, tested, sourced, explained with examples).
+## Step 2: Diagnose the rough prompt
 
-## Domain tuning
+Silently work out:
 
-- **Coding**: add language and version, environment, expected input and output, error messages, edge cases, and whether the user wants a fix, an explanation, or both. Prefer working code with a short explanation of why it works.
-- **Research**: add the question's scope, time frame, what counts as a good source, and whether to compare viewpoints. Use web search for anything current and cite sources.
-- **Studying**: add the topic, level, exam or course context, and the learning goal. Prefer clear explanations with examples, then offer a quiz or flashcards.
+- **Task type**: coding, research, studying, writing, analysis, creative, data, planning, agent task, image or video generation.
+- **Real goal**: the outcome the user wants, not just the words typed.
+- **Gaps**: which of goal, context, audience, constraints, inputs, output format, and quality bar are missing.
+- **Depth needed**:
+  - *Light*: the prompt is already decent. Make minimal edits and say so.
+  - *Standard*: most prompts. Fill the gaps and structure it.
+  - *Deep*: complex or high-stakes tasks. Add steps, examples, verification, and edge cases.
 
-## Rules
+## Step 3: Build the refined prompt
 
-- **Keep the original intent.** Sharpen the prompt; do not change what the user is asking or widen the scope.
-- **Do not stall.** If the prompt is missing something important, make a reasonable assumption, label it in one line ("Assuming Python 3.11"), and answer. Ask at most one clarifying question, and only if a wrong guess would make the whole answer useless.
-- **Keep the rewrite short.** The refined prompt should usually be a paragraph or a few lines, not a long essay. The value is in the answer.
-- **Answer the refined prompt, not the rough one.** The response should reflect the added detail.
-- **Silent mode.** If the user says "just answer" or "don't show the refined prompt", skip step 3 and only give the improved answer.
-- **Already-good prompts.** If the prompt is already clear and detailed, say so in one line and just answer it.
+Use this portable blueprint. Include only the parts that apply, and keep them plain text so every model can read them:
 
-## Output shape
+```
+Task: [one clear sentence saying what to do]
+Context: [background, situation, what the user already knows or tried]
+Audience and level: [who it is for, how technical]
+Inputs: [material to work on, or a placeholder like [PASTE CODE HERE]]
+Constraints: [scope, length, language, versions, things to avoid, stated positively]
+Output format: [structure, length, code, table, sections]
+Quality bar: [what "good" means, how to handle uncertainty]
+```
 
+Rules for building it:
+
+1. **Keep the user's intent.** Sharpen and clarify. Do not change the question or widen the scope.
+2. **Never invent facts about the user.** Unknown personal details become a labelled assumption (Answer mode) or a `[PLACEHOLDER]` (Portable and Tuned modes).
+3. **Use plain, model-neutral formatting.** Short labelled sections or simple Markdown headers. Do not rely on XML tags, special tokens, or one vendor's syntax in the portable version. Tuned variants may use them.
+4. **State constraints positively.** Say what to do ("use plain language") rather than only what not to do.
+5. **Add only what earns its place.** No filler personas, no "you are the world's best expert" padding. A role is useful only when it sets a real domain frame.
+6. **Pick techniques on purpose.** See `references/techniques.md` for when to add examples, reasoning steps, decomposition, output schemas, or a self-check.
+7. **Ask at most one question**, and only if a wrong guess would make the whole result useless. Otherwise assume and label it.
+
+For task-type tuning and model-specific tendencies, read `references/models.md` when the task is a coding agent, search-grounded tool, image or video model, or reasoning model, or when the user names a target.
+
+## Step 4: Self-check before delivering
+
+Run this check silently and fix any failure:
+
+- Could a stranger with no context follow this and produce what the user wants?
+- Is every added detail something the user said, implied, or that is a clearly labelled assumption?
+- Is the output format explicit?
+- Is it as short as it can be while staying complete?
+- Would it still work if pasted into a different model?
+
+## Step 5: Deliver by mode
+
+### Answer mode
 **Refined prompt**
-> [the rewritten prompt]
+> [refined prompt, kept short]
 
-*Assumptions:* [only if any]
+*Assumptions:* [only if any, one line]
 
-[The full answer]
+[Full answer to the refined prompt]
+
+If the original was already clear and detailed, say so in one line and answer directly.
+
+### Portable mode
+```
+[refined prompt, ready to paste]
+```
+**What changed:** 2 to 4 short bullets naming the biggest improvements.
+**Fill in before use:** list any `[PLACEHOLDERS]`, only if there are any.
+
+### Tuned mode
+Give the portable prompt first, then a variant for each named target with one line on what was adjusted and why. Read `references/models.md` first. Say that model behavior changes over time, and that a precise setup for a specific version is worth checking against that model's current docs.
+
+### Critique mode
+Score the prompt out of 10 on clarity, context, constraints, and output format. List the top 3 fixes, then give the improved version in a code block.
+
+## Boundaries
+
+- Do not write prompts meant to bypass an AI's safety rules or to deceive people. Decline that part and help with the legitimate goal.
+- Do not claim a prompt will guarantee a result. Prompts raise the odds of a good answer; they do not promise one.
+- Keep the whole response proportionate. A one-line question does not need a page of scaffolding.
